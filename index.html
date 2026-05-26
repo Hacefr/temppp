@@ -7,12 +7,35 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="game-container">
-        <!-- The main screen where gameplay and arrows will be rendered -->
-        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+    <!-- Top toolbar to switch between gameplay and editing screens -->
+    <div id="editor-toolbar">
+        <button id="btn-play" onclick="switchScreen('gameplay')">Play Mode</button>
+        <button id="btn-edit" onclick="switchScreen('editor')">Chart Editor</button>
     </div>
 
-    <!-- Load the gameplay engine and editor systems -->
+    <div id="game-container">
+        <!-- Main Game Screen Canvas -->
+        <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+        <!-- HTML Chart Editor Interface Overlaid inside the container -->
+        <div id="editorUI" style="display: none;">
+            <div class="editor-sidebar">
+                <h3>Song Config</h3>
+                <label>BPM: <input type="number" id="song-bpm" value="100"></label>
+                <hr>
+                <button id="btn-export" onclick="exportChartJSON()">Export JSON</button>
+            </div>
+            <div class="editor-grid-container">
+                <div class="grid-headers">
+                    <span>L</span><span>D</span><span>U</span><span>R</span>
+                    <span>L</span><span>D</span><span>U</span><span>R</span>
+                </div>
+                <div id="chart-grid" class="chart-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script files loaded in sequence -->
     <script src="game.js"></script>
     <script src="editor.js"></script>
 </body>
