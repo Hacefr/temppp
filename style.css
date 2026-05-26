@@ -46,7 +46,6 @@ canvas {
     image-rendering: crisp-edges;
 }
 
-/* UI Overlay container for the grid builder */
 #editorUI {
     position: absolute;
     top: 0;
@@ -65,12 +64,34 @@ canvas {
     border-right: 2px solid #333;
 }
 
-.editor-sidebar input {
+.editor-sidebar input[type="number"] {
     width: 80px;
     background: #111;
     color: #fff;
     border: 1px solid #555;
     padding: 4px;
+}
+
+.editor-sidebar input[type="file"] {
+    width: 100%;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+
+.audio-controls button {
+    width: 100%;
+    background: #383846;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 6px;
+    cursor: pointer;
+    margin-bottom: 5px;
+}
+
+#audio-time-display {
+    font-size: 14px;
+    color: #aaa;
+    margin-top: 5px;
 }
 
 #btn-export {
@@ -81,6 +102,7 @@ canvas {
     padding: 10px;
     width: 100%;
     cursor: pointer;
+    margin-top: 15px;
 }
 
 .editor-grid-container {
@@ -112,18 +134,24 @@ canvas {
     padding-left: 20px;
     display: flex;
     flex-direction: column;
+    position: relative;
 }
 
-/* Rows representing time increments */
 .grid-row {
     display: grid;
     grid-template-columns: repeat(8, 50px);
     gap: 2px;
     height: 30px;
     border-bottom: 1px solid #2d2d35;
+    position: relative;
 }
 
-/* Individual cell boxes where you click to put notes */
+/* Playback tracking indicator line overlay */
+.grid-row.playback-current {
+    background: rgba(255, 255, 0, 0.15);
+    border-bottom: 1px solid #ffff00;
+}
+
 .grid-cell {
     background: #1e1e24;
     cursor: pointer;
@@ -134,7 +162,6 @@ canvas {
     background: #333;
 }
 
-/* Highlight styles when an item is placed in a cell */
 .grid-cell.active-opponent {
     background: #ff3333;
 }
