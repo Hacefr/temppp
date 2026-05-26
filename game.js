@@ -20,6 +20,28 @@ const strumLines = {
     player: { startX: 720 }     // Right side of the screen
 };
 
+// Map real keyboard inputs to engine lane indices (0 = Left, 1 = Down, 2 = Up, 3 = Right)
+const inputMap = {
+    // Arrow Key Layout
+    'ArrowLeft': 0,
+    'ArrowDown': 1,
+    'ArrowUp': 2,
+    'ArrowRight': 3,
+    
+    // DFJK Comfort Layout
+    'd': 0,
+    'f': 1,
+    'j': 2,
+    'k': 3,
+    'D': 0,
+    'F': 1,
+    'J': 2,
+    'K': 3
+};
+
+// Tracking array to remember exactly which player keys are held down right now
+const keysPressed = [false, false, false, false];
+
 // Array tracking the 4 base directions, their display offsets, colors, and design angles
 const arrowDirections = [
     { name: 'left',  laneOffset: 0, color: '#c24b99', angle: Math.PI / 2 },     // Pink (Points Left)
@@ -31,16 +53,22 @@ const arrowDirections = [
 /**
  * Draws a crisp standalone vector arrow shape centered on a coordinate
  */
-function drawVectorArrow(x, y, color, angle, isReceptor) {
+function drawVectorArrow(x, y, color, angle, isReceptor, isHeld) {
     ctx.save();
     ctx.translate(x, y);
     ctx.rotate(angle);
 
-    // Style properties based on if it's a static hollow receptor or a solid moving note
+    // Style properties based on if it's a static receptor, a held receptor, or a moving note
     if (isReceptor) {
         ctx.strokeStyle = color;
         ctx.lineWidth = 6;
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Dark transparent core
+        if (isHeld) {
+            // Bright solid filled flash color when pressed down
+            ctx.fillStyle = color;
+        } else {
+            // Semi-transparent core when resting idle
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        }
     } else {
         ctx.fillStyle = color;
     }
@@ -60,6 +88,7 @@ function drawVectorArrow(x, y, color, angle, isReceptor) {
     ctx.lineTo(ARROW_SIZE * 0.4, -ARROW_SIZE * 0.1); 
     // Right barb corner
     ctx.lineTo(ARROW_SIZE * 0.9, -ARROW_SIZE * 0.1); 
+    // Seal outline geometry
     ctx.closePath();
 
     ctx.fill();
@@ -79,11 +108,14 @@ function drawStrumlineReceptors() {
         const opponentX = strumLines.opponent.startX + (dir.laneOffset * NOTE_SPACING);
         const playerX = strumLines.player.startX + (dir.laneOffset * NOTE_SPACING);
 
-        // Draw opponent lane receptors (left half)
-        drawVectorArrow(opponentX, STRUM_Y, dir.color, dir.angle, true);
+        // Draw opponent lane receptors (left half - remaining static for now)
+        drawVectorArrow(opponentX, STRUM_Y, dir.color, dir.angle, true, false);
 
-        // Draw player lane receptors (right half)
-        drawVectorArrow(playerX, STRUM_Y, dir.color, dir.angle, true);
+        // Check our active tracking array to see if this specific lane is held down
+        const isPlayerLaneHeld = keysPressed[dir.laneOffset];
+
+        // Draw player lane receptors (right half - reacts dynamically to key presses)
+        drawVectorArrow(playerX, STRUM_Y, dir.color, dir.angle, true, isPlayerLaneHeld);
     });
 }
 
@@ -93,7 +125,7 @@ function gameLoop() {
     ctx.fillStyle = '#1e1e24';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Render the custom arrow receptors at the top of the canvas
+    // 2. Render our responsive arrow receptors at the top of the canvas
     drawStrumlineReceptors();
 
     // 3. Draw HUD text metrics
@@ -106,7 +138,28 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// Automatically start our engine when the page loads
+// Global Event Listeners checking for active keyboard interactions
+window.addEventListener('keydown', (event) => {
+    // Prevent arrow keys or spacebars from moving the webpage browser window down
+    if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        event.preventDefault();
+    }
+
+    // Match the pressed button to our layout index
+    const targetLane = inputMap[event.key];
+    if (targetLane !== undefined) {
+        keysPressed[targetLane] = true;
+    }
+});
+
+window.addEventListener('keyup', (event) => {
+    const targetLane = inputMap[event.key];
+    if (targetLane !== undefined) {
+        keysPressed[targetLane] = false;
+    }
+});
+
+// Automatically start our engine loop when the website loads up
 window.addEventListener('load', () => {
     gameLoop();
 });
