@@ -20,10 +20,8 @@
     </div>
 
     <div id="game-container">
-        <!-- Main Game Screen Canvas -->
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
-        <!-- HTML Chart Editor Interface Overlaid inside the container -->
         <div id="editorUI" style="display: none;">
             <div class="editor-sidebar">
                 <h3>Song Config</h3>
@@ -40,7 +38,7 @@
                 </div>
                 <div id="audio-time-display">Time: 0.00s</div>
 
-                <hr>
+                <!-- Backup Export button in sidebar (Scroll down to see it if hidden) -->
                 <button id="btn-export" onclick="exportChartJSON()">
                     Export JSON
                 </button>
@@ -50,17 +48,18 @@
                 <div class="grid-headers">
                     <span>L</span><span>D</span><span>U</span><span>R</span>
                     <span>L</span><span>D</span><span>U</span><span>R</span>
+                    <!-- Quick-action button right above your layout columns -->
+                    <div class="header-actions">
+                        <button onclick="exportChartJSON()">Export Chart</button>
+                    </div>
                 </div>
                 <div id="chart-grid" class="chart-grid"></div>
             </div>
         </div>
     </div>
 
-    <!-- Core drawing loop engine script -->
     <script src="game.js"></script>
-    <!-- Timing control and file interaction script -->
     <script src="game2.js"></script>
-    <!-- Chart editing interface engine script -->
     <script src="editor.js"></script>
 </body>
 </html>
