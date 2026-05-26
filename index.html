@@ -14,6 +14,10 @@
         <button id="btn-edit" onclick="switchScreen('editor')">
             Chart Editor
         </button>
+        <!-- Real-time Chart file tester input -->
+        <span style="margin-left: 15px; font-size: 14px; color: #ccc;">
+            Load Chart JSON: <input type="file" id="chart-loader" accept=".json">
+        </span>
     </div>
 
     <div id="game-container">
@@ -30,7 +34,6 @@
                 
                 <hr>
                 <h3>Audio Track</h3>
-                <!-- Audio file loader input -->
                 <input type="file" id="audio-uploader" accept="audio/*">
                 
                 <div class="audio-controls">
