@@ -14,7 +14,6 @@
         <button id="btn-edit" onclick="switchScreen('editor')">
             Chart Editor
         </button>
-        <!-- Real-time Chart file tester input -->
         <span style="margin-left: 15px; font-size: 14px; color: #ccc;">
             Load Chart JSON: <input type="file" id="chart-loader" accept=".json">
         </span>
@@ -57,7 +56,11 @@
         </div>
     </div>
 
+    <!-- Core drawing loop engine script -->
     <script src="game.js"></script>
+    <!-- Timing control and file interaction script -->
+    <script src="game2.js"></script>
+    <!-- Chart editing interface engine script -->
     <script src="editor.js"></script>
 </body>
 </html>
