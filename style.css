@@ -56,6 +56,7 @@ canvas {
     display: flex;
 }
 
+/* FIX: Enabled vertical scrolling on the sidebar to prevent content clipping */
 .editor-sidebar {
     width: 250px;
     background: #24242b;
@@ -65,11 +66,7 @@ canvas {
     display: flex;
     flex-direction: column;
     height: 100%;
-}
-
-.sidebar-scrollable-content {
-    flex-grow: 1;
-    overflow-y: auto;
+    overflow-y: auto; 
 }
 
 .editor-sidebar input[type="number"] {
@@ -110,7 +107,6 @@ canvas {
     font-family: monospace;
 }
 
-/* Timeline scrubber bar styling */
 .scrub-container {
     margin-bottom: 15px;
 }
@@ -134,7 +130,12 @@ canvas {
     padding: 12px;
     width: 100%;
     cursor: pointer;
-    margin-top: auto;
+    margin-top: 15px;
+    flex-shrink: 0;
+}
+
+#btn-export:hover {
+    background: #0fe004;
 }
 
 .editor-grid-container {
@@ -147,8 +148,7 @@ canvas {
 
 .grid-headers {
     display: grid;
-    /* Expanded grid column widths to 70px per lane */
-    grid-template-columns: 60px repeat(8, 70px);
+    grid-template-columns: 60px repeat(8, 70px) 150px;
     gap: 3px;
     padding-left: 20px;
     background: #0b0b0d;
@@ -164,6 +164,29 @@ canvas {
     color: #8e8e9a;
 }
 
+/* Header utility actions layout container */
+.header-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 10px;
+}
+
+.header-actions button {
+    background: #12fa05;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.header-actions button:hover {
+    background: #0fe004;
+}
+
 .chart-grid {
     flex-grow: 1;
     overflow-y: scroll;
@@ -173,7 +196,6 @@ canvas {
     position: relative;
 }
 
-/* Upgraded rows with enhanced vertical grid clearance dimensions */
 .grid-row {
     display: grid;
     grid-template-columns: 60px repeat(8, 70px);
@@ -200,7 +222,6 @@ canvas {
     font-weight: bold;
 }
 
-/* Re-engineered larger, highly accessible cell tap boxes */
 .grid-cell {
     background: #1d1d24;
     height: 36px;
