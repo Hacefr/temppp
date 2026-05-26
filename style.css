@@ -1,4 +1,3 @@
-/* Reset default browser margins and set a clean background color */
 body {
     margin: 0;
     padding: 0;
@@ -6,23 +5,140 @@ body {
     color: #ffffff;
     font-family: Arial, sans-serif;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
     overflow: hidden;
 }
 
-/* Center and frame the game window */
+#editor-toolbar {
+    margin-bottom: 10px;
+}
+
+#editor-toolbar button {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin: 0 5px;
+}
+
+#editor-toolbar button:hover {
+    background: #555;
+}
+
 #game-container {
+    position: relative;
     box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     overflow: hidden;
     background-color: #000000;
+    width: 1280px;
+    height: 720px;
 }
 
-/* Ensure the canvas maintains crisp pixel rendering for game art */
 canvas {
     display: block;
     image-rendering: pixelated;
     image-rendering: crisp-edges;
+}
+
+/* UI Overlay container for the grid builder */
+#editorUI {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1280px;
+    height: 720px;
+    background: #18181c;
+    display: flex;
+}
+
+.editor-sidebar {
+    width: 250px;
+    background: #24242b;
+    padding: 20px;
+    box-sizing: border-box;
+    border-right: 2px solid #333;
+}
+
+.editor-sidebar input {
+    width: 80px;
+    background: #111;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 4px;
+}
+
+#btn-export {
+    background: #12fa05;
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+}
+
+.editor-grid-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.grid-headers {
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    gap: 2px;
+    padding-left: 20px;
+    background: #111;
+    height: 40px;
+    align-items: center;
+}
+
+.grid-headers span {
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.chart-grid {
+    flex-grow: 1;
+    overflow-y: scroll;
+    padding-left: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Rows representing time increments */
+.grid-row {
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    gap: 2px;
+    height: 30px;
+    border-bottom: 1px solid #2d2d35;
+}
+
+/* Individual cell boxes where you click to put notes */
+.grid-cell {
+    background: #1e1e24;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.02);
+}
+
+.grid-cell:hover {
+    background: #333;
+}
+
+/* Highlight styles when an item is placed in a cell */
+.grid-cell.active-opponent {
+    background: #ff3333;
+}
+
+.grid-cell.active-player {
+    background: #12fa05;
 }
