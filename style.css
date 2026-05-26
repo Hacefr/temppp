@@ -1,1 +1,28 @@
+/* Reset default browser margins and set a clean background color */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #111116;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
 
+/* Center and frame the game window */
+#game-container {
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #000000;
+}
+
+/* Ensure the canvas maintains crisp pixel rendering for game art */
+canvas {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
