@@ -3,10 +3,10 @@ let chartData = {
     notes: []
 };
 
-// Audio synchronization management variables
 let editorAudio = null;
 let isAudioPlaying = false;
 let audioUpdateInterval = null;
+let userIsScrubbing = false;
 
 function switchScreen(screenName) {
     const canvasElement = document.getElementById('gameCanvas');
@@ -21,8 +21,6 @@ function switchScreen(screenName) {
         gameState.currentScreen = 'gameplay';
         canvasElement.style.display = 'block';
         editorUIElement.style.display = 'none';
-        
-        // Safety lock: halt music playback if leaving editor viewport
         if (isAudioPlaying) toggleEditorAudio();
     }
 }
@@ -31,8 +29,8 @@ function renderEditorGrid() {
     const gridContainer = document.getElementById('chart-grid');
     gridContainer.innerHTML = ''; 
 
-    // Extended timeline bounds to 256 rows to accommodate full songs
-    const totalRows = 256; 
+    // 512 total rows for full length tracks
+    const totalRows = 512; 
     
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
         const row = document.createElement('div');
@@ -40,6 +38,12 @@ function renderEditorGrid() {
         row.id = `editor-row-${rowIndex}`;
 
         const msTime = Math.floor(rowIndex * (60000 / chartData.bpm / 4));
+        
+        // Render timeline clock label element
+        const timeLabel = document.createElement('div');
+        timeLabel.className = 'row-timestamp';
+        timeLabel.innerText = `${(msTime / 1000).toFixed(2)}s`;
+        row.appendChild(timeLabel);
 
         for (let colIndex = 0; colIndex < 8; colIndex++) {
             const cell = document.createElement('div');
@@ -91,21 +95,24 @@ function renderEditorGrid() {
     }
 }
 
-/**
- * Monitors active audio runtime positioning to visually auto-scroll the grid
- */
 function updateEditorPlaybackVisuals() {
     if (!editorAudio) return;
 
-    const currentTimeMs = editorAudio.currentTime * 1000;
+    const currentTime = editorAudio.currentTime;
+    const currentTimeMs = currentTime * 1000;
+    
     const timeDisplay = document.getElementById('audio-time-display');
-    timeDisplay.innerText = `Time: ${editorAudio.currentTime.toFixed(2)}s`;
+    timeDisplay.innerText = `Time: ${currentTime.toFixed(2)}s`;
 
-    // Determine target row matching active playback timing status
+    // Sync input range slider handle if player is not actively dragging it
+    if (!userIsScrubbing) {
+        const scrubber = document.getElementById('timeline-scrubber');
+        scrubber.value = currentTime;
+    }
+
     const msPerRow = 60000 / chartData.bpm / 4;
     const currentExactRow = Math.floor(currentTimeMs / msPerRow);
 
-    // Wipe previous highlight tags across row elements
     const activeRows = document.querySelectorAll('.grid-row.playback-current');
     activeRows.forEach(r => r.classList.remove('playback-current'));
 
@@ -116,11 +123,14 @@ function updateEditorPlaybackVisuals() {
     if (targetRowElement) {
         targetRowElement.classList.add('playback-current');
         
-        // Auto-center the scroll window container directly onto the target element row
-        targetRowElement.scrollIntoView({
-            behavior: 'auto',
-            block: 'center'
-        });
+        // CRITICAL FIX: Isolate scroll completely to container object element
+        const gridContainer = document.getElementById('chart-grid');
+        
+        const rowTop = targetRowElement.offsetTop;
+        const containerHeight = gridContainer.clientHeight;
+        
+        // Centers the active highlighted row natively inside the layout container panel
+        gridContainer.scrollTop = rowTop - (containerHeight / 2) + 21;
     }
 }
 
@@ -161,24 +171,63 @@ function exportChartJSON() {
     linkElement.click();
 }
 
-// Global Listener assigning uploaded media streams to internal audio constructor
 window.addEventListener('load', () => {
     const fileUploader = document.getElementById('audio-uploader');
     const audioBtn = document.getElementById('btn-audio-play');
+    const scrubber = document.createElement('input');
+    
+    // Inject specialized range timeline container structures directly into sidebar
+    scrubber.type = 'range';
+    scrubber.id = 'timeline-scrubber';
+    scrubber.className = 'timeline-scrubber';
+    scrubber.value = 0;
+    scrubber.min = 0;
+    scrubber.max = 100;
+    scrubber.step = 0.1;
+
+    const scrubContainer = document.createElement('div');
+    scrubContainer.className = 'scrub-container';
+    
+    const scrubLabel = document.createElement('label');
+    scrubLabel.innerText = 'Song Timeline Scrubber:';
+    
+    scrubContainer.appendChild(scrubLabel);
+    scrubContainer.appendChild(scrubber);
+
+    const targetSidebar = document.querySelector('.audio-controls');
+    targetSidebar.parentNode.insertBefore(scrubContainer, targetSidebar);
 
     fileUploader.addEventListener('change', (event) => {
         const file = event.target.files[0];
         if (file) {
             const fileUrl = URL.createObjectURL(file);
             
-            // Clean up old sound objects if switching files
             if (editorAudio) editorAudio.pause(); 
             
             editorAudio = new Audio(fileUrl);
             audioBtn.innerText = 'Play Music';
             isAudioPlaying = false;
             clearInterval(audioUpdateInterval);
+
+            // Once the track parameters are read, unlock range limits
+            editorAudio.addEventListener('loadedmetadata', () => {
+                scrubber.max = editorAudio.duration;
+                scrubber.value = 0;
+            });
         }
+    });
+
+    // Handle user manual dragging interactions on the timeline slider
+    scrubber.addEventListener('input', () => {
+        userIsScrubbing = true;
+        if (editorAudio) {
+            editorAudio.currentTime = scrubber.value;
+            updateEditorPlaybackVisuals();
+        }
+    });
+
+    scrubber.addEventListener('change', () => {
+        userIsScrubbing = false;
     });
 
     audioBtn.addEventListener('click', toggleEditorAudio);
