@@ -7,6 +7,18 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="editor-toolbar">
+        <button id="btn-play" onclick="switchScreen('gameplay')">
+            Play Mode
+        </button>
+        <button id="btn-edit" onclick="switchScreen('editor')">
+            Chart Editor
+        </button>
+        <span style="margin-left: 15px; font-size: 14px; color: #ccc;">
+            Load Chart JSON: <input type="file" id="chart-loader" accept=".json">
+        </span>
+    </div>
+
     <div id="game-container">
         <!-- Main Game Screen Canvas -->
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
@@ -39,7 +51,6 @@
                     <span>L</span><span>D</span><span>U</span><span>R</span>
                     <div class="header-actions">
                         <button onclick="exportChartJSON()">Export Chart</button>
-                        <!-- Back button to return to our new main menu state -->
                         <button onclick="returnToMenuFromEditor()" style="background:#ff3344; color:#fff; margin-left:10px;">Exit Editor</button>
                     </div>
                 </div>
@@ -48,8 +59,10 @@
         </div>
     </div>
 
+    <!-- Script sequence framework layout links -->
     <script src="game.js"></script>
     <script src="game2.js"></script>
+    <script src="game3.js"></script>
     <script src="editor.js"></script>
 </body>
 </html>
