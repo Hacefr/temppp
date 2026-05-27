@@ -80,23 +80,71 @@ function checkNoteHit(lane) {
     }
 }
 
+/**
+ * Custom function to execute in-game routing actions
+ */
+function handleMenuSelectionSubmit() {
+    if (gameState.menuSelector === 0) {
+        // Route user to Freeplay mode layout viewport
+        gameState.currentScreen = 'gameplay';
+    } else if (gameState.menuSelector === 1) {
+        // Route user straight into Editor mode grid panels
+        if (typeof window.switchScreen === 'function') {
+            window.switchScreen('editor');
+        }
+    }
+}
+
 window.addEventListener('keydown', (event) => {
+    // Intercept default screen movement keys
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
         event.preventDefault();
     }
-    const targetLane = inputMap[event.key];
-    if (targetLane !== undefined) {
-        if (!keysPressed[targetLane]) checkNoteHit(targetLane);
-        keysPressed[targetLane] = true;
-    }
-    if ((event.key === 'r' || event.key === 'R') && gameState.health <= 0) {
-        gameState.health = 50; gameState.score = 0; gameState.misses = 0; gameState.combo = 0;
-        activeNotes = []; visualPopups = [];
-        if (playableChart) {
-            if (playableAudio) { playableAudio.currentTime = 0; playableAudio.play(); }
-            gameState.startTime = performance.now(); gameState.songPlaying = true;
+
+    // 1. Title Screen State Controls
+    if (gameState.currentScreen === 'title') {
+        if (event.key === 'Enter') {
+            gameState.currentScreen = 'mainmenu';
         }
-        gameLoop();
+        return;
+    }
+
+    // 2. Main Menu Selection Controls
+    if (gameState.currentScreen === 'mainmenu') {
+        if (event.key === 'ArrowUp') {
+            gameState.menuSelector = (gameState.menuSelector === 0) ? 1 : 0;
+        } else if (event.key === 'ArrowDown') {
+            gameState.menuSelector = (gameState.menuSelector === 1) ? 0 : 1;
+        } else if (event.key === 'Enter') {
+            handleMenuSelectionSubmit();
+        }
+        return;
+    }
+
+    // 3. Play Mode Gameplay Controls
+    if (gameState.currentScreen === 'gameplay') {
+        const targetLane = inputMap[event.key];
+        if (targetLane !== undefined) {
+            if (!keysPressed[targetLane]) checkNoteHit(targetLane);
+            keysPressed[targetLane] = true;
+        }
+        
+        // Escape back out to main menu via Backspace key interaction
+        if (event.key === 'Backspace') {
+            if (playableAudio) playableAudio.pause();
+            gameState.songPlaying = false;
+            gameState.currentScreen = 'mainmenu';
+            activeNotes = [];
+        }
+
+        if ((event.key === 'r' || event.key === 'R') && gameState.health <= 0) {
+            gameState.health = 50; gameState.score = 0; gameState.misses = 0; gameState.combo = 0;
+            activeNotes = []; visualPopups = [];
+            if (playableChart) {
+                if (playableAudio) { playableAudio.currentTime = 0; playableAudio.play(); }
+                gameState.startTime = performance.now(); gameState.songPlaying = true;
+            }
+        }
     }
 });
 
@@ -108,7 +156,7 @@ window.addEventListener('keyup', (event) => {
 window.addEventListener('load', () => {
     const chartInput = document.getElementById('chart-loader');
     chartInput.addEventListener('change', (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files;
         if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) {
