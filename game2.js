@@ -4,6 +4,7 @@ const inputMap = {
 };
 
 window.processChartTimeline = function() {
+    // Safety check: Halt if no chart data structure is mounted
     if (!gameState.songPlaying || !playableChart || !playableChart.notes) return;
 
     if (playableAudio) {
@@ -96,20 +97,14 @@ window.addEventListener('keydown', (event) => {
     }
 
     if (gameState.currentScreen === 'title') {
-        if (event.key === 'Enter') {
-            gameState.currentScreen = 'mainmenu';
-        }
+        if (event.key === 'Enter') gameState.currentScreen = 'mainmenu';
         return;
     }
 
     if (gameState.currentScreen === 'mainmenu') {
-        if (event.key === 'ArrowUp') {
-            gameState.menuSelector = (gameState.menuSelector === 0) ? 1 : 0;
-        } else if (event.key === 'ArrowDown') {
-            gameState.menuSelector = (gameState.menuSelector === 1) ? 0 : 1;
-        } else if (event.key === 'Enter') {
-            handleMenuSelectionSubmit();
-        }
+        if (event.key === 'ArrowUp') gameState.menuSelector = (gameState.menuSelector === 0) ? 1 : 0;
+        else if (event.key === 'ArrowDown') gameState.menuSelector = (gameState.menuSelector === 1) ? 0 : 1;
+        else if (event.key === 'Enter') handleMenuSelectionSubmit();
         return;
     }
 
@@ -143,24 +138,50 @@ window.addEventListener('keyup', (event) => {
     if (targetLane !== undefined) keysPressed[targetLane] = false;
 });
 
+// UPGRADED STABLE FILE LISTENER INTERFACE
 window.addEventListener('load', () => {
     const chartInput = document.getElementById('chart-loader');
+    
     chartInput.addEventListener('change', (event) => {
-        const file = event.target.files;
+        const file = event.target.files[0];
+        
+        // FIX 1: Safety exit if the uploader fires with an empty selection
         if (!file) return;
+
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const parsedData = JSON.parse(e.target.result);
-                if (!parsedData || !parsedData.notes) return;
-                playableChart = JSON.parse(JSON.stringify(parsedData));
-                activeNotes = []; gameState.score = 0; gameState.misses = 0; gameState.combo = 0; gameState.health = 50;
-                if (typeof editorAudio !== 'undefined' && editorAudio !== null) {
-                    playableAudio = editorAudio; playableAudio.currentTime = 0; playableAudio.play();
+                
+                // FIX 2: Check if notes exist inside the file before trying to read it
+                if (!parsedData || !parsedData.notes) {
+                    alert('This file is blank or missing note data!');
+                    return;
                 }
-                gameState.startTime = performance.now(); gameState.songPlaying = true;
-                createRatingPopup('LEVEL LOADED!', '#12fa05');
-            } catch (err) {}
+                
+                // FIX 3: Safe, deep clone injection to separate variables
+                playableChart = JSON.parse(JSON.stringify(parsedData));
+                
+                // FIX 4: Complete board state flush to ensure notes spawn instantly
+                activeNotes = []; 
+                gameState.score = 0; 
+                gameState.misses = 0; 
+                gameState.combo = 0; 
+                gameState.health = 50;
+
+                if (typeof editorAudio !== 'undefined' && editorAudio !== null) {
+                    playableAudio = editorAudio; 
+                    playableAudio.currentTime = 0; 
+                    playableAudio.play();
+                }
+
+                gameState.startTime = performance.now(); 
+                gameState.songPlaying = true;
+                
+                createRatingPopup('CHART OVERRIDE SUCCESS!', '#12fa05');
+            } catch (err) {
+                alert('JSON Reading Error. Please try exporting your chart again.');
+            }
         };
         reader.readAsText(file);
     });
