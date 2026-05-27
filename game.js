@@ -198,6 +198,11 @@ function renderGameplayInterface() {
     ctx.fillStyle = '#1e1e24';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
+    // LINK TO game3.js: Calculate beat pulses and render character frames behind notes
+    if (typeof window.updateAndDrawCharacters === 'function') {
+        window.updateAndDrawCharacters();
+    }
+    
     if (typeof window.processChartTimeline === 'function') {
         window.processChartTimeline();
         window.handleAndDrawNotes();
@@ -240,7 +245,6 @@ function gameLoop() {
     requestAnimationFrame(gameLoop);
 }
 
-// CRITICAL REBOOT FIX: Force loop setup immediately upon page window registration
 window.addEventListener('load', () => {
     gameLoop();
 });
