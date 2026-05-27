@@ -25,11 +25,23 @@ function switchScreen(screenName) {
     }
 }
 
+/**
+ * Dedicated callback routing exit parameters back out to main menu
+ */
+function returnToMenuFromEditor() {
+    const canvasElement = document.getElementById('gameCanvas');
+    const editorUIElement = document.getElementById('editorUI');
+    
+    if (isAudioPlaying) toggleEditorAudio();
+    
+    gameState.currentScreen = 'mainmenu';
+    canvasElement.style.display = 'block';
+    editorUIElement.style.display = 'none';
+}
+
 function renderEditorGrid() {
     const gridContainer = document.getElementById('chart-grid');
     gridContainer.innerHTML = ''; 
-
-    // 512 total rows for full length tracks
     const totalRows = 512; 
     
     for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
@@ -39,7 +51,6 @@ function renderEditorGrid() {
 
         const msTime = Math.floor(rowIndex * (60000 / chartData.bpm / 4));
         
-        // Render timeline clock label element
         const timeLabel = document.createElement('div');
         timeLabel.className = 'row-timestamp';
         timeLabel.innerText = `${(msTime / 1000).toFixed(2)}s`;
@@ -54,38 +65,26 @@ function renderEditorGrid() {
             const typeStr = isPlayer ? 'player' : 'opponent';
 
             const hasNote = chartData.notes.some(n => 
-                n.time === msTime && 
-                n.direction === targetLane && 
-                n.type === typeStr
+                n.time === msTime && n.direction === targetLane && n.type === typeStr
             );
 
             if (hasNote) {
-                cell.classList.add(
-                    isPlayer ? 'active-player' : 'active-opponent'
-                );
+                cell.classList.add(isPlayer ? 'active-player' : 'active-opponent');
             }
 
             cell.addEventListener('click', () => {
                 const noteIndex = chartData.notes.findIndex(n => 
-                    n.time === msTime && 
-                    n.direction === targetLane && 
-                    n.type === typeStr
+                    n.time === msTime && n.direction === targetLane && n.type === typeStr
                 );
 
                 if (noteIndex > -1) {
                     chartData.notes.splice(noteIndex, 1);
-                    cell.classList.remove(
-                        'active-player', 'active-opponent'
-                    );
+                    cell.classList.remove('active-player', 'active-opponent');
                 } else {
                     chartData.notes.push({
-                        time: msTime,
-                        direction: targetLane,
-                        type: typeStr
+                        time: msTime, direction: targetLane, type: typeStr
                     });
-                    cell.classList.add(
-                        isPlayer ? 'active-player' : 'active-opponent'
-                    );
+                    cell.classList.add(isPlayer ? 'active-player' : 'active-opponent');
                 }
             });
 
@@ -104,7 +103,6 @@ function updateEditorPlaybackVisuals() {
     const timeDisplay = document.getElementById('audio-time-display');
     timeDisplay.innerText = `Time: ${currentTime.toFixed(2)}s`;
 
-    // Sync input range slider handle if player is not actively dragging it
     if (!userIsScrubbing) {
         const scrubber = document.getElementById('timeline-scrubber');
         scrubber.value = currentTime;
@@ -116,20 +114,12 @@ function updateEditorPlaybackVisuals() {
     const activeRows = document.querySelectorAll('.grid-row.playback-current');
     activeRows.forEach(r => r.classList.remove('playback-current'));
 
-    const targetRowElement = document.getElementById(
-        `editor-row-${currentExactRow}`
-    );
-    
+    const targetRowElement = document.getElementById(`editor-row-${currentExactRow}`);
     if (targetRowElement) {
         targetRowElement.classList.add('playback-current');
-        
-        // CRITICAL FIX: Isolate scroll completely to container object element
         const gridContainer = document.getElementById('chart-grid');
-        
         const rowTop = targetRowElement.offsetTop;
         const containerHeight = gridContainer.clientHeight;
-        
-        // Centers the active highlighted row natively inside the layout container panel
         gridContainer.scrollTop = rowTop - (containerHeight / 2) + 21;
     }
 }
@@ -148,10 +138,7 @@ function toggleEditorAudio() {
         isAudioPlaying = false;
     } else {
         editorAudio.play();
-        audioUpdateInterval = setInterval(
-            updateEditorPlaybackVisuals, 
-            16
-        );
+        audioUpdateInterval = setInterval(updateEditorPlaybackVisuals, 16);
         playBtn.innerText = 'Pause Music';
         isAudioPlaying = true;
     }
@@ -162,8 +149,7 @@ function exportChartJSON() {
     chartData.bpm = parseInt(bpmInput.value) || 100;
 
     const dataStr = JSON.stringify(chartData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,' + 
-        encodeURIComponent(dataStr);
+    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
 
     const linkElement = document.createElement('a');
     linkElement.setAttribute('href', dataUri);
@@ -176,18 +162,12 @@ window.addEventListener('load', () => {
     const audioBtn = document.getElementById('btn-audio-play');
     const scrubber = document.createElement('input');
     
-    // Inject specialized range timeline container structures directly into sidebar
-    scrubber.type = 'range';
-    scrubber.id = 'timeline-scrubber';
-    scrubber.className = 'timeline-scrubber';
-    scrubber.value = 0;
-    scrubber.min = 0;
-    scrubber.max = 100;
-    scrubber.step = 0.1;
+    scrubber.type = 'range'; scrubber.id = 'timeline-scrubber';
+    scrubber.className = 'timeline-scrubber'; scrubber.value = 0;
+    scrubber.min = 0; scrubber.max = 100; scrubber.step = 0.1;
 
     const scrubContainer = document.createElement('div');
     scrubContainer.className = 'scrub-container';
-    
     const scrubLabel = document.createElement('label');
     scrubLabel.innerText = 'Song Timeline Scrubber:';
     
@@ -198,18 +178,14 @@ window.addEventListener('load', () => {
     targetSidebar.parentNode.insertBefore(scrubContainer, targetSidebar);
 
     fileUploader.addEventListener('change', (event) => {
-        const file = event.target.files[0];
+        const file = event.target.files;
         if (file) {
             const fileUrl = URL.createObjectURL(file);
-            
             if (editorAudio) editorAudio.pause(); 
-            
             editorAudio = new Audio(fileUrl);
             audioBtn.innerText = 'Play Music';
             isAudioPlaying = false;
             clearInterval(audioUpdateInterval);
-
-            // Once the track parameters are read, unlock range limits
             editorAudio.addEventListener('loadedmetadata', () => {
                 scrubber.max = editorAudio.duration;
                 scrubber.value = 0;
@@ -217,7 +193,6 @@ window.addEventListener('load', () => {
         }
     });
 
-    // Handle user manual dragging interactions on the timeline slider
     scrubber.addEventListener('input', () => {
         userIsScrubbing = true;
         if (editorAudio) {
@@ -226,9 +201,6 @@ window.addEventListener('load', () => {
         }
     });
 
-    scrubber.addEventListener('change', () => {
-        userIsScrubbing = false;
-    });
-
+    scrubber.addEventListener('change', () => { userIsScrubbing = false; });
     audioBtn.addEventListener('click', toggleEditorAudio);
 });
