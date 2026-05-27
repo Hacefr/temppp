@@ -80,15 +80,10 @@ function checkNoteHit(lane) {
     }
 }
 
-/**
- * Custom function to execute in-game routing actions
- */
 function handleMenuSelectionSubmit() {
     if (gameState.menuSelector === 0) {
-        // Route user to Freeplay mode layout viewport
         gameState.currentScreen = 'gameplay';
     } else if (gameState.menuSelector === 1) {
-        // Route user straight into Editor mode grid panels
         if (typeof window.switchScreen === 'function') {
             window.switchScreen('editor');
         }
@@ -96,12 +91,10 @@ function handleMenuSelectionSubmit() {
 }
 
 window.addEventListener('keydown', (event) => {
-    // Intercept default screen movement keys
     if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
         event.preventDefault();
     }
 
-    // 1. Title Screen State Controls
     if (gameState.currentScreen === 'title') {
         if (event.key === 'Enter') {
             gameState.currentScreen = 'mainmenu';
@@ -109,7 +102,6 @@ window.addEventListener('keydown', (event) => {
         return;
     }
 
-    // 2. Main Menu Selection Controls
     if (gameState.currentScreen === 'mainmenu') {
         if (event.key === 'ArrowUp') {
             gameState.menuSelector = (gameState.menuSelector === 0) ? 1 : 0;
@@ -121,7 +113,6 @@ window.addEventListener('keydown', (event) => {
         return;
     }
 
-    // 3. Play Mode Gameplay Controls
     if (gameState.currentScreen === 'gameplay') {
         const targetLane = inputMap[event.key];
         if (targetLane !== undefined) {
@@ -129,7 +120,6 @@ window.addEventListener('keydown', (event) => {
             keysPressed[targetLane] = true;
         }
         
-        // Escape back out to main menu via Backspace key interaction
         if (event.key === 'Backspace') {
             if (playableAudio) playableAudio.pause();
             gameState.songPlaying = false;
@@ -174,5 +164,4 @@ window.addEventListener('load', () => {
         };
         reader.readAsText(file);
     });
-    gameLoop();
 });
