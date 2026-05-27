@@ -1,10 +1,9 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Enhanced state management to control the opening game flow screens
 const gameState = {
-    currentScreen: 'intro', // Cycles: intro -> title -> mainmenu -> gameplay
-    menuSelector: 0,        // 0 = Freeplay, 1 = Chart Editor
+    currentScreen: 'intro', 
+    menuSelector: 0,        
     score: 0,
     misses: 0,
     health: 50,             
@@ -12,8 +11,8 @@ const gameState = {
     songPlaying: false,
     startTime: 0,
     elapsedTimeMs: 0,
-    introTimer: 0,          // Accumulator tracking splash text card ticks
-    titleFlash: 0           // Sinusoidal tracker for pulsing menu text strings
+    introTimer: 0,          
+    titleFlash: 0           
 };
 
 let playableChart = null;
@@ -119,20 +118,15 @@ function drawStrumlineReceptors() {
     });
 }
 
-/**
- * Handles the multi-card intro sequence display logic
- */
 function renderIntroScreen() {
     ctx.fillStyle = '#0a0a0f';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 36px Arial';
     ctx.textAlign = 'center';
     
     gameState.introTimer += 1;
     
-    // Smooth timing card milestones calculated over frame ticks
     if (gameState.introTimer < 90) {
         ctx.fillText('Engine Made by YNTM', canvas.width / 2, canvas.height / 2);
     } else if (gameState.introTimer >= 120 && gameState.introTimer < 210) {
@@ -145,19 +139,14 @@ function renderIntroScreen() {
         ctx.font = 'bold 52px Arial';
         ctx.fillText('NO, FUNKIN\'.', canvas.width / 2, canvas.height / 2);
     } else if (gameState.introTimer >= 520) {
-        gameState.currentScreen = 'title'; // Auto advance to title page menu
+        gameState.currentScreen = 'title'; 
     }
     ctx.textAlign = 'left';
 }
 
-/**
- * Renders the pulsing title splash display page
- */
 function renderTitleScreen() {
     ctx.fillStyle = '#111116';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Render big stylized title layout banner
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffff00';
     ctx.font = 'bold 72px Arial';
@@ -166,40 +155,31 @@ function renderTitleScreen() {
     ctx.font = 'italic 32px Arial';
     ctx.fillText('Custom Mod Engine Builder', canvas.width / 2, 340);
 
-    // Compute bouncing flashing value logic markers
     gameState.titleFlash += 0.05;
     const opacity = Math.abs(Math.sin(gameState.titleFlash));
-    
     ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
     ctx.font = 'bold 24px Arial';
     ctx.fillText('PRESS ENTER TO START', canvas.width / 2, 530);
     ctx.textAlign = 'left';
 }
 
-/**
- * Renders the primary selection interface menu window
- */
 function renderMainMenuScreen() {
     ctx.fillStyle = '#15151c';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.textAlign = 'center';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 42px Arial';
     ctx.fillText('MAIN MENU', canvas.width / 2, 140);
-    
     ctx.font = '28px Arial';
     
-    // Option item 1: Freeplay Mode configuration
     if (gameState.menuSelector === 0) {
-        ctx.fillStyle = '#12fa05'; // Highlight active cursor option neon green
+        ctx.fillStyle = '#12fa05';
         ctx.fillText('> FREEPLAY MODE <', canvas.width / 2, 320);
     } else {
         ctx.fillStyle = '#888899';
         ctx.fillText('FREEPLAY MODE', canvas.width / 2, 320);
     }
 
-    // Option item 2: Chart Layout Grid Editor configuration
     if (gameState.menuSelector === 1) {
         ctx.fillStyle = '#12fa05';
         ctx.fillText('> CHART EDITOR <', canvas.width / 2, 410);
@@ -232,7 +212,6 @@ function renderGameplayInterface() {
     ctx.fillText(`Misses: ${gameState.misses}`, 50, 700);
     ctx.fillText(`Combo: ${gameState.combo}`, canvas.width - 150, 700);
 
-    // Display help loader notification text layout panel if chart data array is empty
     if (!playableChart && !gameState.songPlaying) {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillRect(150, 240, canvas.width - 300, 150);
@@ -246,7 +225,6 @@ function renderGameplayInterface() {
 }
 
 function gameLoop() {
-    // Control routing based on target active state layout parameters
     if (gameState.currentScreen === 'intro') {
         renderIntroScreen();
     } else if (gameState.currentScreen === 'title') {
@@ -256,10 +234,13 @@ function gameLoop() {
     } else if (gameState.currentScreen === 'gameplay') {
         renderGameplayInterface();
     } else if (gameState.currentScreen === 'editor') {
-        // Halt drawing loop execution if overlay layout grid is visible
         requestAnimationFrame(gameLoop);
         return;
     }
-
     requestAnimationFrame(gameLoop);
 }
+
+// CRITICAL REBOOT FIX: Force loop setup immediately upon page window registration
+window.addEventListener('load', () => {
+    gameLoop();
+});
