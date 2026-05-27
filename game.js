@@ -1,19 +1,21 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// Consolidated core engine state container
+// Enhanced state management to control the opening game flow screens
 const gameState = {
-    currentScreen: 'gameplay', 
+    currentScreen: 'intro', // Cycles: intro -> title -> mainmenu -> gameplay
+    menuSelector: 0,        // 0 = Freeplay, 1 = Chart Editor
     score: 0,
     misses: 0,
     health: 50,             
     combo: 0,
     songPlaying: false,
     startTime: 0,
-    elapsedTimeMs: 0
+    elapsedTimeMs: 0,
+    introTimer: 0,          // Accumulator tracking splash text card ticks
+    titleFlash: 0           // Sinusoidal tracker for pulsing menu text strings
 };
 
-// Structural storage objects for user loaded external assets
 let playableChart = null;
 let playableAudio = null;
 
@@ -117,30 +119,105 @@ function drawStrumlineReceptors() {
     });
 }
 
-function drawWaitingMenuBanner() {
-    if (gameState.songPlaying) return;
-    ctx.fillStyle = 'rgba(10, 10, 15, 0.85)';
-    ctx.fillRect(100, 200, canvas.width - 200, 260);
-    ctx.strokeStyle = '#333344'; ctx.lineWidth = 3;
-    ctx.strokeRect(100, 200, canvas.width - 200, 260);
-    ctx.fillStyle = '#ffff00'; ctx.font = 'bold 26px Arial'; ctx.textAlign = 'center';
-    ctx.fillText('ENGINE STABLE & READY', canvas.width / 2, 250);
-    ctx.fillStyle = '#ffffff'; ctx.font = '18px Arial';
-    ctx.fillText('1. Go to Chart Editor to map actions and Export JSON.', canvas.width / 2, 310);
-    ctx.fillText('2. In Play Mode, select your chart using the loader button at the top.', canvas.width / 2, 350);
-    ctx.fillText('Optional: You can also use the Editor audio loader to link songs.', canvas.width / 2, 390);
-    ctx.textAlign = 'left'; 
+/**
+ * Handles the multi-card intro sequence display logic
+ */
+function renderIntroScreen() {
+    ctx.fillStyle = '#0a0a0f';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 36px Arial';
+    ctx.textAlign = 'center';
+    
+    gameState.introTimer += 1;
+    
+    // Smooth timing card milestones calculated over frame ticks
+    if (gameState.introTimer < 90) {
+        ctx.fillText('Engine Made by YNTM', canvas.width / 2, canvas.height / 2);
+    } else if (gameState.introTimer >= 120 && gameState.introTimer < 210) {
+        ctx.fillText('HIIIII', canvas.width / 2, canvas.height / 2);
+    } else if (gameState.introTimer >= 240 && gameState.introTimer < 350) {
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillText('What the heck is a newgrounds?', canvas.width / 2, canvas.height / 2);
+    } else if (gameState.introTimer >= 380 && gameState.introTimer < 490) {
+        ctx.fillStyle = '#f9393f';
+        ctx.font = 'bold 52px Arial';
+        ctx.fillText('NO, FUNKIN\'.', canvas.width / 2, canvas.height / 2);
+    } else if (gameState.introTimer >= 520) {
+        gameState.currentScreen = 'title'; // Auto advance to title page menu
+    }
+    ctx.textAlign = 'left';
 }
 
-function gameLoop() {
-    if (gameState.currentScreen !== 'gameplay') {
-        requestAnimationFrame(gameLoop);
-        return;
+/**
+ * Renders the pulsing title splash display page
+ */
+function renderTitleScreen() {
+    ctx.fillStyle = '#111116';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Render big stylized title layout banner
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 72px Arial';
+    ctx.fillText('FRIDAY NIGHT FUNKIN\'', canvas.width / 2, 280);
+    ctx.fillStyle = '#00ffff';
+    ctx.font = 'italic 32px Arial';
+    ctx.fillText('Custom Mod Engine Builder', canvas.width / 2, 340);
+
+    // Compute bouncing flashing value logic markers
+    gameState.titleFlash += 0.05;
+    const opacity = Math.abs(Math.sin(gameState.titleFlash));
+    
+    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText('PRESS ENTER TO START', canvas.width / 2, 530);
+    ctx.textAlign = 'left';
+}
+
+/**
+ * Renders the primary selection interface menu window
+ */
+function renderMainMenuScreen() {
+    ctx.fillStyle = '#15151c';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 42px Arial';
+    ctx.fillText('MAIN MENU', canvas.width / 2, 140);
+    
+    ctx.font = '28px Arial';
+    
+    // Option item 1: Freeplay Mode configuration
+    if (gameState.menuSelector === 0) {
+        ctx.fillStyle = '#12fa05'; // Highlight active cursor option neon green
+        ctx.fillText('> FREEPLAY MODE <', canvas.width / 2, 320);
+    } else {
+        ctx.fillStyle = '#888899';
+        ctx.fillText('FREEPLAY MODE', canvas.width / 2, 320);
     }
+
+    // Option item 2: Chart Layout Grid Editor configuration
+    if (gameState.menuSelector === 1) {
+        ctx.fillStyle = '#12fa05';
+        ctx.fillText('> CHART EDITOR <', canvas.width / 2, 410);
+    } else {
+        ctx.fillStyle = '#888899';
+        ctx.fillText('CHART EDITOR', canvas.width / 2, 410);
+    }
+    
+    ctx.fillStyle = '#555566';
+    ctx.font = '16px Arial';
+    ctx.fillText('Use UP / DOWN Arrow Keys to Navigate • Press ENTER to Select', canvas.width / 2, 620);
+    ctx.textAlign = 'left';
+}
+
+function renderGameplayInterface() {
     ctx.fillStyle = '#1e1e24';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Call background calculation steps from game2.js dynamically
     if (typeof window.processChartTimeline === 'function') {
         window.processChartTimeline();
         window.handleAndDrawNotes();
@@ -149,21 +226,40 @@ function gameLoop() {
     drawStrumlineReceptors();
     handleAndDrawPopups();
     drawHealthBar();
-    drawWaitingMenuBanner();
 
     ctx.fillStyle = '#ffffff'; ctx.font = 'bold 18px Arial';
     ctx.fillText(`Score: ${gameState.score}`, 50, 675);
     ctx.fillText(`Misses: ${gameState.misses}`, 50, 700);
     ctx.fillText(`Combo: ${gameState.combo}`, canvas.width - 150, 700);
 
-    if (gameState.health <= 0) {
-        if (playableAudio) playableAudio.pause();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#ff0000'; ctx.font = 'bold 64px Arial'; ctx.textAlign = 'center';
-        ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-        ctx.font = '20px Arial'; ctx.fillStyle = '#ffffff';
-        ctx.fillText('Press "R" to Restart Level', canvas.width / 2, canvas.height / 2 + 60);
-        return; 
+    // Display help loader notification text layout panel if chart data array is empty
+    if (!playableChart && !gameState.songPlaying) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.fillRect(150, 240, canvas.width - 300, 150);
+        ctx.fillStyle = '#ffff00'; ctx.font = 'bold 22px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('No Custom Chart Loaded for Freeplay!', canvas.width / 2, 290);
+        ctx.fillStyle = '#ffffff'; ctx.font = '16px Arial';
+        ctx.fillText('Please feed your chart.json file using the file loader at the top bar.', canvas.width / 2, 330);
+        ctx.fillText('Press "BACKSPACE" to return to Main Menu at any time.', canvas.width / 2, 360);
+        ctx.textAlign = 'left';
     }
+}
+
+function gameLoop() {
+    // Control routing based on target active state layout parameters
+    if (gameState.currentScreen === 'intro') {
+        renderIntroScreen();
+    } else if (gameState.currentScreen === 'title') {
+        renderTitleScreen();
+    } else if (gameState.currentScreen === 'mainmenu') {
+        renderMainMenuScreen();
+    } else if (gameState.currentScreen === 'gameplay') {
+        renderGameplayInterface();
+    } else if (gameState.currentScreen === 'editor') {
+        // Halt drawing loop execution if overlay layout grid is visible
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
     requestAnimationFrame(gameLoop);
 }
