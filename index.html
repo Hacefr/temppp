@@ -7,21 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="editor-toolbar">
-        <button id="btn-play" onclick="switchScreen('gameplay')">
-            Play Mode
-        </button>
-        <button id="btn-edit" onclick="switchScreen('editor')">
-            Chart Editor
-        </button>
-        <span style="margin-left: 15px; font-size: 14px; color: #ccc;">
-            Load Chart JSON: <input type="file" id="chart-loader" accept=".json">
-        </span>
-    </div>
-
     <div id="game-container">
+        <!-- Main Game Screen Canvas -->
         <canvas id="gameCanvas" width="1280" height="720"></canvas>
 
+        <!-- HTML Chart Editor Interface Overlaid inside the container -->
         <div id="editorUI" style="display: none;">
             <div class="editor-sidebar">
                 <h3>Song Config</h3>
@@ -38,7 +28,6 @@
                 </div>
                 <div id="audio-time-display">Time: 0.00s</div>
 
-                <!-- Backup Export button in sidebar (Scroll down to see it if hidden) -->
                 <button id="btn-export" onclick="exportChartJSON()">
                     Export JSON
                 </button>
@@ -48,9 +37,10 @@
                 <div class="grid-headers">
                     <span>L</span><span>D</span><span>U</span><span>R</span>
                     <span>L</span><span>D</span><span>U</span><span>R</span>
-                    <!-- Quick-action button right above your layout columns -->
                     <div class="header-actions">
                         <button onclick="exportChartJSON()">Export Chart</button>
+                        <!-- Back button to return to our new main menu state -->
+                        <button onclick="returnToMenuFromEditor()" style="background:#ff3344; color:#fff; margin-left:10px;">Exit Editor</button>
                     </div>
                 </div>
                 <div id="chart-grid" class="chart-grid"></div>
